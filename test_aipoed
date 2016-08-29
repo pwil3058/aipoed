@@ -1,0 +1,111 @@
+#!/usr/bin/python3
+### Copyright (C) 2013 Peter Williams <pwil3058@gmail.com>
+###
+### This program is free software; you can redistribute it and/or modify
+### it under the terms of the GNU General Public License as published by
+### the Free Software Foundation; version 2 of the License only.
+###
+### This program is distributed in the hope that it will be useful,
+### but WITHOUT ANY WARRANTY; without even the implied warranty of
+### MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+### GNU General Public License for more details.
+###
+### You should have received a copy of the GNU General Public License
+### along with this program; if not, write to the Free Software
+### Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+"""GUI interface for viewing a file system as a tree"""
+
+import argparse
+import os
+import sys
+
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk
+
+import test_aipoed_pkg
+
+from test_aipoed_pkg import APP_NAME, BUG_TRACK_URL, DISCUSSION_GRP
+
+_REPORT_REQUEST_MSG = \
+_("""<b>Please report this problem by either:
+  submitting a bug report at &lt;{url}&gt;
+or:
+  e-mailing &lt;{grp}&gt;
+and including a copy of the details below this message.
+
+Thank you.</b>
+""").format(url=BUG_TRACK_URL, grp=DISCUSSION_GRP)
+
+def report_exception(exc_data, parent=None):
+    def copy_cb(tview):
+        tview.get_buffer().copy_clipboard(Gtk.clipboard_get())
+    import traceback
+    msg = "".join(traceback.format_exception(exc_data[0], exc_data[1], exc_data[2]))
+    dialog = Gtk.Dialog(title=APP_NAME + _( ": Unhandled Exception"),
+                        parent=parent, flags=Gtk.DialogFlags.MODAL|Gtk.DialogFlags.DESTROY_WITH_PARENT,
+                        buttons=(Gtk.STOCK_CLOSE, Gtk.ResponseType.CLOSE))
+    icon = Gtk.Image()
+    icon.set_from_stock(Gtk.STOCK_DIALOG_ERROR, Gtk.IconSize.DIALOG)
+    vbox = Gtk.VBox()
+    vbox.pack_start(icon, expand=False, fill=False, padding=0)
+    hbox = Gtk.HBox()
+    hbox.pack_start(vbox, expand=False, fill=False, padding=0)
+    label = Gtk.Label()
+    label.set_selectable(True)
+    label.set_markup(_REPORT_REQUEST_MSG)
+    hbox.pack_start(label, expand=False, fill=False, padding=0)
+    dialog.get_content_area().pack_start(hbox, expand=False, fill=False, padding=0)
+    sbw = Gtk.ScrolledWindow()
+    tview = Gtk.TextView()
+    tview.set_editable(False)
+    tview.get_buffer().set_text(msg)
+    tview.connect("copy-clipboard", copy_cb)
+    sbw.add(tview)
+    dialog.get_content_area().pack_end(sbw, expand=True, fill=True, padding=0)
+    dialog.show_all()
+    dialog.set_resizable(True)
+    dialog.run()
+    dialog.destroy()
+
+from test_aipoed_pkg.gui import recollect
+from test_aipoed_pkg.gui import main_window
+
+PARSER = argparse.ArgumentParser(description=_("GUI to test Application Independent PyObject Extensions Development code."))
+
+PARSER.add_argument(
+    "wd",
+    help=_("Directory within which to run the GUI."),
+    metavar=_("dir"),
+    nargs="?"
+)
+
+ARGS = PARSER.parse_args()
+
+if ARGS.wd:
+    try:
+        os.chdir(ARGS.wd)
+        recollect.set(APP_NAME, "last_wd", ARGS.wd)
+    except OSError as msg:
+        sys.stderr.write(str(msg) + "\n")
+        sys.exit(2)
+else:
+    last_dir = recollect.get(APP_NAME, "last_wd")
+    if os.path.isdir(last_dir):
+        try:
+            os.chdir(last_dir)
+        except OSError as msg:
+            pass # go back to asking the user where he wants to start
+        ARGS.wd = os.getcwd()
+
+mw = main_window.MainWindow()
+mw.show()
+
+try:
+    Gtk.main()
+except (SystemExit, KeyboardInterrupt):
+    pass
+except Exception:
+    report_exception(sys.exc_info(), parent=mw)
+    sys.exit(3)
