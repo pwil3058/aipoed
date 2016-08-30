@@ -18,14 +18,34 @@
 from gi.repository import Gtk
 
 from aipoed import singleton
+from aipoed.gui import dialogue
 
 from . import recollect
 
 recollect.define("main_window", "last_geometry", recollect.Defn(str, ""))
 
 @singleton
-class MainWindow(Gtk.Window):
+class MainWindow(dialogue.Window):
     def __init__(self):
-        Gtk.Window.__init__(self, Gtk.WindowType.TOPLEVEL)
+        dialogue.Window.__init__(self, type=Gtk.WindowType.TOPLEVEL)
+        self.add(BITester())
         self.connect("destroy", lambda _widget: Gtk.main_quit())
         self.parse_geometry(recollect.get("main_window", "last_geometry"))
+        self.show_all()
+
+class BITester(Gtk.HBox, dialogue.BusyIndicatorUser):
+    def __init__(self):
+        Gtk.HBox.__init__(self)
+        self._label = Gtk.Label("0")
+        start_button = Gtk.Button.new_with_label(_("Start"))
+        self.pack_start(self._label, expand=True, fill=True, padding=0)
+        self.pack_start(start_button, expand=False, fill=True, padding=0)
+        start_button.connect("clicked", self._start_button_clicked_cb)
+        self.show_all()
+    def _start_button_clicked_cb(self, button):
+        button.set_sensitive(False)
+        with self.showing_busy():
+            for i in range(1000):
+                self._label.set_text(str(i))
+                dialogue.yield_to_pending_events()
+        button.set_sensitive(True)
