@@ -17,7 +17,7 @@
 
 from gi.repository import Gtk
 
-from aipoed import singleton
+from aipoed.decorators import singleton
 from aipoed.gui import dialogue
 
 from . import recollect
