@@ -31,6 +31,7 @@ class MainWindow(dialogue.Window):
         vbox = Gtk.VBox()
         vbox.pack_start(BITester(), expand=False, fill=True, padding=0)
         vbox.pack_start(AskerTester(), expand=False, fill=True, padding=0)
+        vbox.pack_start(AskerResponseTester(), expand=False, fill=True, padding=0)
         self.add(vbox)
         self.connect("destroy", lambda _widget: Gtk.main_quit())
         self.parse_geometry(recollect.get("main_window", "last_geometry"))
@@ -40,7 +41,7 @@ class BITester(Gtk.HBox, dialogue.BusyIndicatorUser):
     def __init__(self):
         Gtk.HBox.__init__(self)
         self._label = Gtk.Label("0")
-        start_button = Gtk.Button.new_with_label(_("Start"))
+        start_button = Gtk.Button.new_with_label(_("Start Show Busy"))
         self.pack_start(self._label, expand=True, fill=True, padding=0)
         self.pack_start(start_button, expand=False, fill=True, padding=0)
         start_button.connect("clicked", self._start_button_clicked_cb)
@@ -68,3 +69,18 @@ class AskerTester(Gtk.HBox, dialogue.AskerMixin):
             self._label.set_text("OK")
         else:
             self._label.set_text("Cancel")
+
+class AskerResponseTester(Gtk.HBox, dialogue.AskerMixin):
+    def __init__(self):
+        Gtk.HBox.__init__(self)
+        self._label = Gtk.Label("Response")
+        ask_button = Gtk.Button.new_with_label(_("Ask For Response"))
+        self.pack_start(self._label, expand=True, fill=True, padding=0)
+        self.pack_start(ask_button, expand=False, fill=True, padding=0)
+        ask_button.connect("clicked", self._ask_button_clicked_cb)
+        self.show_all()
+    def _ask_button_clicked_cb(self, button):
+        from aipoed import Suggestion, ActionResult
+        result = ActionResult.error("File already exists.") | (Suggestion.RENAME|Suggestion.OVERWRITE)
+        answer = self.accept_suggestion_or_cancel(result, "Accept a Suggestion or Cancel")#, [Suggestion.OVERWRITE, Suggestion.SKIP])
+        self._label.set_text(dialogue.response_str(answer))
