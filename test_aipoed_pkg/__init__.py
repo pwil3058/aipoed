@@ -19,6 +19,7 @@
 ### Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import os
+import gettext
 
 APP_NAME = "test_aipoed"
 BUG_TRACK_URL = "https://github.com/pwil3058/aipoed/issues"
@@ -27,8 +28,6 @@ CONFIG_DIR_PATH = os.path.expanduser(os.path.join("~", ".config", APP_NAME))
 
 if not os.path.exists(CONFIG_DIR_PATH):
     os.makedirs(CONFIG_DIR_PATH)
-
-import gettext
 
 from aipoed import i18n
 
