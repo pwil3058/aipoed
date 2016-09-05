@@ -15,27 +15,93 @@
 ### along with this program; if not, write to the Free Software
 ### Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import os
+
 from gi.repository import Gtk
 
 from aipoed.decorators import singleton
+
+from aipoed import enotify
+
 from aipoed.gui import dialogue
+from aipoed.gui import file_tree
+from aipoed.gui import actions
+from aipoed.gui import recollect
+
+from .. import APP_NAME
 
 from . import recollect
 
 recollect.define("main_window", "last_geometry", recollect.Defn(str, ""))
 
 @singleton
-class MainWindow(dialogue.Window):
+class MainWindow(dialogue.Window, actions.CAGandUIManager, enotify.Listener, dialogue.ClientMixin):
+    UI_DESCR = \
+        '''
+        <ui>
+            <menubar name="left_side_menubar">
+                <menu action="working_directory_menu">
+                    <menuitem action="change_wd_action"/>
+                    <menuitem action="quit_action"/>
+                </menu>
+            </menubar>
+            <menubar name="right_side_menubar">
+                <menu action="configuration_menu">
+                    <menuitem action="allocate_xtnl_editors"/>
+                    <menuitem action="config_auto_update"/>
+                </menu>
+            </menubar>
+        </ui>
+        '''
     def __init__(self):
         dialogue.Window.__init__(self, type=Gtk.WindowType.TOPLEVEL)
+        dialogue.BusyIndicator.__init__(self)
+        actions.CAGandUIManager.__init__(self)
+        enotify.Listener.__init__(self)
         vbox = Gtk.VBox()
+        hbox = Gtk.HBox()
+        self._lhs_menubar = self.ui_manager.get_widget("/left_side_menubar")
+        self._rhs_menubar = self.ui_manager.get_widget("/right_side_menubar")
+        hbox.pack_start(self._lhs_menubar, expand=True, fill=True, padding=0)
+        hbox.pack_end(self._rhs_menubar, expand=False, fill=True, padding=0)
+        vbox.pack_start(hbox, expand=False, fill=True, padding=0)
+        vbox.pack_start(file_tree.FileTreeWidget(), expand=True, fill=True, padding=0)
         vbox.pack_start(BITester(), expand=False, fill=True, padding=0)
         vbox.pack_start(AskerTester(), expand=False, fill=True, padding=0)
         vbox.pack_start(AskerResponseTester(), expand=False, fill=True, padding=0)
         self.add(vbox)
         self.connect("destroy", lambda _widget: Gtk.main_quit())
+        self.connect("configure_event", self._configure_event_cb)
         self.parse_geometry(recollect.get("main_window", "last_geometry"))
         self.show_all()
+        self._update_title()
+        self.add_notification_cb(enotify.E_CHANGE_WD, self._reset_after_cd)
+        # TODO: get rid of this hack
+        dialogue.main_window = self
+    def populate_action_groups(self):
+        actions.CLASS_INDEP_AGS[actions.AC_DONT_CARE].add_actions(
+            [
+                ("working_directory_menu", None, _('_Working Directory')),
+                ("configuration_menu", None, _('_Configuration')),
+                ("change_wd_action", Gtk.STOCK_OPEN, _('_Open'), "",
+                 _("Change current working directory"), self._change_wd_acb),
+                ("quit_action", Gtk.STOCK_QUIT, _("_Quit"), "",
+                 _("Quit"), lambda _action : Gtk.main_quit()),
+            ])
+    def _update_title(self):
+        self.set_title(APP_NAME + ": ~{0}".format(os.path.relpath(os.getcwd(), os.getenv("HOME"))))
+    def _reset_after_cd(self, *args, **kwargs):
+        with self.showing_busy():
+            self._update_title()
+    def _change_wd_acb(self, _action=None):
+        new_dir_path = self.ask_dir_path("New Directory Path", suggestion=None, existing=True)
+        if new_dir_path and os.path.isdir(new_dir_path):
+            with self.showing_busy():
+                result = os.chdir(new_dir_path)
+                enotify.notify_events(enotify.E_CHANGE_WD)
+                recollect.set(APP_NAME, "last_wd", os.getcwd())
+    def _configure_event_cb(self, widget, event):
+        recollect.set("main_window", "last_geometry", "{0.width}x{0.height}+{0.x}+{0.y}".format(event))
 
 class BITester(Gtk.HBox, dialogue.BusyIndicatorUser):
     def __init__(self):

@@ -20,3 +20,9 @@
 
 # Import aipoed gui to establish Gtk version requirements
 from aipoed import gui
+
+from aipoed.gui import xtnl_edit
+
+from .. import APP_NAME, CONFIG_DIR_PATH
+
+xtnl_edit.initialize(APP_NAME, CONFIG_DIR_PATH)
