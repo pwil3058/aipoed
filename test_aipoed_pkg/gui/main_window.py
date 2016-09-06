@@ -35,7 +35,7 @@ from . import recollect
 recollect.define("main_window", "last_geometry", recollect.Defn(str, ""))
 
 @singleton
-class MainWindow(dialogue.Window, actions.CAGandUIManager, enotify.Listener, dialogue.ClientMixin):
+class MainWindow(dialogue.MainWindow, actions.CAGandUIManager, enotify.Listener, dialogue.ClientMixin):
     UI_DESCR = \
         '''
         <ui>
@@ -54,7 +54,7 @@ class MainWindow(dialogue.Window, actions.CAGandUIManager, enotify.Listener, dia
         </ui>
         '''
     def __init__(self):
-        dialogue.Window.__init__(self, type=Gtk.WindowType.TOPLEVEL)
+        dialogue.MainWindow.__init__(self)
         dialogue.BusyIndicator.__init__(self)
         actions.CAGandUIManager.__init__(self)
         enotify.Listener.__init__(self)
@@ -76,10 +76,8 @@ class MainWindow(dialogue.Window, actions.CAGandUIManager, enotify.Listener, dia
         self.show_all()
         self._update_title()
         self.add_notification_cb(enotify.E_CHANGE_WD, self._reset_after_cd)
-        # TODO: get rid of this hack
-        dialogue.main_window = self
     def populate_action_groups(self):
-        actions.CLASS_INDEP_AGS[actions.AC_DONT_CARE].add_actions(
+        self.action_groups[actions.AC_DONT_CARE].add_actions(
             [
                 ("working_directory_menu", None, _('_Working Directory')),
                 ("configuration_menu", None, _('_Configuration')),

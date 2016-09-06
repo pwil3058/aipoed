@@ -102,6 +102,9 @@ else:
 mw = main_window.MainWindow()
 mw.show()
 
+# Make sure "@singleton" is working
+assert main_window.MainWindow() is mw
+
 try:
     Gtk.main()
 except (SystemExit, KeyboardInterrupt):
