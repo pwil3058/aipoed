@@ -27,6 +27,7 @@ from aipoed.gui import dialogue
 from aipoed.gui import file_tree
 from aipoed.gui import actions
 from aipoed.gui import recollect
+from aipoed.gui import terminal
 
 from .. import APP_NAME
 
@@ -66,6 +67,8 @@ class MainWindow(dialogue.MainWindow, actions.CAGandUIManager, enotify.Listener,
         hbox.pack_end(self._rhs_menubar, expand=False, fill=True, padding=0)
         vbox.pack_start(hbox, expand=False, fill=True, padding=0)
         vbox.pack_start(file_tree.FileTreeWidget(), expand=True, fill=True, padding=0)
+        if terminal.AVAILABLE:
+            vbox.pack_start(terminal.Terminal(), expand=True, fill=True, padding=0)
         vbox.pack_start(BITester(), expand=False, fill=True, padding=0)
         vbox.pack_start(AskerTester(), expand=False, fill=True, padding=0)
         vbox.pack_start(AskerResponseTester(), expand=False, fill=True, padding=0)
