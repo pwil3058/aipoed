@@ -36,7 +36,7 @@ from . import recollect
 recollect.define("main_window", "last_geometry", recollect.Defn(str, ""))
 
 @singleton
-class MainWindow(dialogue.MainWindow, actions.CAGandUIManager, enotify.Listener, dialogue.ClientMixin):
+class MainWindow(dialogue.MainWindow, actions.CAGandUIManager, enotify.Listener):
     UI_DESCR = \
         '''
         <ui>
