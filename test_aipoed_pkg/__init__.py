@@ -29,8 +29,10 @@ CONFIG_DIR_PATH = os.path.expanduser(os.path.join("~", ".config", APP_NAME))
 if not os.path.exists(CONFIG_DIR_PATH):
     os.makedirs(CONFIG_DIR_PATH)
 
-from aipoed import i18n
+import aipoed
 
-LOCALE_DIR = i18n.find_locale_dir()
+LOCALE_DIR = aipoed.i18n.find_locale_dir()
 
 gettext.install(APP_NAME, localedir=LOCALE_DIR)
+
+aipoed.options.initialize(CONFIG_DIR_PATH)
