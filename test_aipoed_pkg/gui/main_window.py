@@ -30,6 +30,7 @@ from aipoed.gui import recollect
 from aipoed.gui import terminal
 from aipoed.gui import gutils
 from aipoed.gui import icons
+from aipoed.gui import console
 
 from aipoed.patch_diff.gui import patch_view
 
@@ -78,6 +79,7 @@ class MainWindow(dialogue.MainWindow, actions.CAGandUIManager, enotify.Listener)
         vbox.pack_start(file_tree.FileTreeWidget(), expand=True, fill=True, padding=0)
         if terminal.AVAILABLE:
             vbox.pack_start(terminal.Terminal(), expand=True, fill=True, padding=0)
+        vbox.pack_start(console.LOG, expand=True, fill=True, padding=0)
         vbox.pack_start(BITester(), expand=False, fill=True, padding=0)
         vbox.pack_start(AskerTester(), expand=False, fill=True, padding=0)
         vbox.pack_start(AskerResponseTester(), expand=False, fill=True, padding=0)
