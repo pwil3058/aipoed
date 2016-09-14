@@ -31,6 +31,7 @@ from aipoed.gui import terminal
 from aipoed.gui import gutils
 from aipoed.gui import icons
 from aipoed.gui import console
+from aipoed.gui import text_edit
 
 from aipoed.patch_diff.gui import patch_view
 
@@ -53,6 +54,7 @@ class MainWindow(dialogue.MainWindow, actions.CAGandUIManager, enotify.Listener)
                 <menu action="working_directory_menu">
                     <menuitem action="change_wd_action"/>
                     <menuitem action="view_patch_action"/>
+                    <menuitem action="edit_text_action"/>
                     <menuitem action="quit_action"/>
                 </menu>
             </menubar>
@@ -100,6 +102,8 @@ class MainWindow(dialogue.MainWindow, actions.CAGandUIManager, enotify.Listener)
                  _("Change current working directory"), self._change_wd_acb),
                 ("view_patch_action", Gtk.STOCK_OPEN, _("View Patch"), "",
                  _("View a patch file"), self._view_patch_acb),
+                ("edit_text_action", Gtk.STOCK_EDIT, _("Edit Message"), "",
+                 _("Edit a message"), lambda _action: MessageDialog().show()),
                 ("quit_action", Gtk.STOCK_QUIT, _("_Quit"), "",
                  _("Quit"), lambda _action : Gtk.main_quit()),
             ])
@@ -194,3 +198,28 @@ class PatchFileDialog(dialogue.Dialog):
     def _update_display_cb(self, *args, **kwargs):
         with self.showing_busy():
             self._widget.set_patch(patchlib.Patch.parse_text_file(self._patch_file_path))
+
+
+class MessageWidget(text_edit.MessageWidget):
+    UI_DESCR = \
+    """
+    <ui>
+      <toolbar name="message_toolbar">
+        <toolitem action="text_edit_ack"/>
+        <toolitem action="text_edit_sign_off"/>
+        <toolitem action="text_edit_author"/>
+      </toolbar>
+    </ui>
+    """
+    def __init__(self):
+        text_edit.MessageWidget.__init__(self)
+        toolbar = self.ui_manager.get_widget("/message_toolbar")
+        toolbar.set_style(Gtk.ToolbarStyle.BOTH_HORIZ)
+        toolbar.set_orientation(Gtk.Orientation.HORIZONTAL)
+        self.top_hbox.pack_end(toolbar, fill=False, expand=False, padding=0)
+
+class MessageDialog(dialogue.Dialog):
+    def __init__(self, *args, **kwargs):
+        dialogue.Dialog.__init__(self, *args, **kwargs)
+        self.vbox.pack_start(MessageWidget(), expand=True, fill=True, padding=0)
+        self.show_all()
