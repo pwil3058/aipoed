@@ -34,7 +34,7 @@ NAME = "aipoed"
 
 DESCRIPTION = "A Python package provide application independent support for Peter Williams' GUI applications."
 
-VERSION = "0.1.0"
+from aipoed import VERSION
 
 # Get the long description from the README file
 with open(path.join(here, "README.md"), encoding="utf-8") as f:
@@ -43,6 +43,7 @@ with open(path.join(here, "README.md"), encoding="utf-8") as f:
 pixmaps = glob.glob("pixmaps/*.png")
 
 PIXMAPS = [("share/pixmaps/aipoed", pixmaps)]
+print(PIXMAPS)
 
 COPYRIGHT = [("share/doc/aipoed", ["COPYING", "copyright"])]
 
