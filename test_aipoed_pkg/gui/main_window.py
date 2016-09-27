@@ -33,6 +33,8 @@ from aipoed.gui import icons
 from aipoed.gui import console
 from aipoed.gui import text_edit
 
+from aipoed.git.gui import ifce
+
 from aipoed.patch_diff.gui import patch_view
 
 from aipoed.patch_diff import patchlib
